@@ -3,15 +3,12 @@ import { Text, View, StyleSheet, Image, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather"; //public open source icons
 import { MaterialCommunityIcons } from "@expo/vector-icons"; //open source icons
-import infoData from "../assets/data/infoData";
 import colors from "../assets/colors/colors";
+import infoData from "../assets/data/infoData";
+import subjectData from "../assets/data/subjectsData";
 
 export default Home = () => {
-  {
-    /** Profile Picture and  Menu Icons, use gettyimage profile picturs and 
-open source icons wouldnt let me write this under the return*/
-  }
-
+  // item pointer function to get data for each item in the info list
   const renderInfoItem = ({ item }) => {
     return (
       <View
@@ -33,8 +30,20 @@ open source icons wouldnt let me write this under the return*/
       </View>
     );
   };
+  // pointer function to get data for subject items
+  const renderSubjectItem = ({ item }) => {
+    return (
+      <View style={styles.subjectListWrapper}>
+        <Image source={item.image} />
+        <Text>{item.name}</Text>
+        <Text>{item.Learned}</Text>
+      </View>
+    );
+  };
   return (
     <View style={styles.contianer}>
+      {/** Profile Picture and  Menu Icons, use gettyimage profile picturs and 
+        open source icons wouldnt let me write this under the return*/}
       <SafeAreaView>
         <View style={styles.headerWrapper}>
           <Image
@@ -47,7 +56,7 @@ open source icons wouldnt let me write this under the return*/
 
       {/* Welcome Titles */}
       <View style={styles.titlesWrapper}>
-        <Text style={styles.titlesMain}>Welcome!</Text>
+        <Text style={styles.titlesHeader1}>Welcome!</Text>
       </View>
 
       {/* Info Tiles */}
@@ -60,6 +69,24 @@ open source icons wouldnt let me write this under the return*/
           horizontal={true}
         ></FlatList>
       </View>
+
+      {/* Subject Titles */}
+      <View style={styles.titlesWrapper}>
+        <Text style={styles.titlesHeader2}>Subjects</Text>
+      </View>
+
+      {/** Subject Cards */}
+
+      <View style={styles.subjectWrapper}>
+        {subjectData.map((item) => (
+          <View style={styles.subjectCardWrapper}>
+            <Image source={item.image} style={styles.subjectCardImage} />
+            <Text>{item.title}</Text>
+            <Text>{item.Learned}</Text>
+            <Feather name="arrow-right" size={16} />
+          </View>
+        ))}
+      </View>
     </View>
   );
 };
@@ -68,6 +95,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+
   headerWrapper: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -75,23 +103,32 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     alignItems: "center",
   },
+
   profileImage: {
     width: 40,
     height: 40,
     borderRadius: 40,
   },
+
   titlesWrapper: {
     marginTop: 20,
     paddingHorizontal: 20,
   },
-  titlesMain: {
+
+  titlesHeader1: {
     fontSize: 32,
     color: colors.textDark,
     fontWeight: "900",
   },
+
+  titlesHeader2: {
+    fontSize: 28,
+    color: colors.textDark,
+    fontWeight: "800",
+  },
+
   infoWrapper: {
     paddingTop: 20,
-    paddingBottom: 20,
   },
 
   categoryListWrapper: {
@@ -100,6 +137,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginRight: 30,
   },
+
   categoryItemMainText: {
     textAlign: "center",
     fontSize: 30,
@@ -107,11 +145,21 @@ const styles = StyleSheet.create({
     paddingTop: 30,
     fontWeight: "bold",
   },
+
   categoryItemSubText: {
     flexDirection: "row",
     textAlign: "center",
     fontSize: 15,
     paddingTop: 20,
     paddingBottom: 30,
+  },
+  subjectWrapper: {},
+  subjectCardWrapper: {
+    fontSize: 12,
+    flexDirection: "row",
+  },
+  subjectCardImage: {
+    width: 64,
+    height: 64,
   },
 });
