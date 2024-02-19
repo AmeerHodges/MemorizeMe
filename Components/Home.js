@@ -17,9 +17,11 @@ open source icons wouldnt let me write this under the return*/
       <View
         style={[
           styles.categoryListWrapper,
-          { backgroundColor: item.selected ? colors.primary : colors.white },
-          { color: item.selected ? colors.textLight : colors.textDark },
-          { marginLeft: (item.id = 1) ? 30 : 0 },
+          {
+            backgroundColor: item.selected ? colors.primary : colors.white,
+            color: item.selected ? colors.textLight : colors.textDark,
+            marginLeft: item.id == 1 ? 30 : 0,
+          },
         ]}
       >
         <Text style={styles.categoryItemMainText}>
@@ -79,7 +81,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
   },
   titlesWrapper: {
-    marginTop: 30,
+    marginTop: 20,
     paddingHorizontal: 20,
   },
   titlesMain: {
@@ -96,6 +98,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
+    marginRight: 30,
   },
   categoryItemMainText: {
     textAlign: "center",
