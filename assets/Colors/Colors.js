@@ -1,10 +1,8 @@
 const colors = {
-  background: "#F9F9FB",
   textDark: "#313234",
-  primary: "#F5CA48",
-  secondary: "#F26C68",
+  primary: "#4969FF",
+  secondary: "#5649FF",
   textLight: "#CDCDCD",
-  price: "#E4723C",
   white: "#FFF",
   black: "#000",
 };
