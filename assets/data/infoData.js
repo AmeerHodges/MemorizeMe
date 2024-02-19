@@ -1,4 +1,13 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons"; //open source icons
+import subjectDatas from "./subjectsData";
+
+function sum() {
+  var total = 0;
+  subjectDatas.forEach((item) => {
+    total += item.Learned;
+  });
+  return total / subjectDatas.length;
+}
 
 const infoData = [
   {
@@ -23,7 +32,7 @@ const infoData = [
     iconSize: 20,
     title: "Learned",
     selected: false,
-    Data: "56",
+    Data: sum(),
   },
 ];
 

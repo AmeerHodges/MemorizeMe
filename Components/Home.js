@@ -1,5 +1,12 @@
 import React from "react";
-import { Text, View, StyleSheet, Image, FlatList } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  FlatList,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather"; //public open source icons
 import { MaterialCommunityIcons } from "@expo/vector-icons"; //open source icons
@@ -30,8 +37,8 @@ export default Home = () => {
       </View>
     );
   };
-  // pointer function to get data for subject items
-  const renderSubjectItem = ({ item }) => {
+  // pointer function to get data for subject items INVALID
+  /**const renderSubjectItem = ({ item }) => {
     return (
       <View style={styles.subjectListWrapper}>
         <Image source={item.image} />
@@ -39,7 +46,7 @@ export default Home = () => {
         <Text>{item.Learned}</Text>
       </View>
     );
-  };
+  };*/
   return (
     <View style={styles.contianer}>
       {/** Profile Picture and  Menu Icons, use gettyimage profile picturs and 
@@ -79,13 +86,31 @@ export default Home = () => {
 
       <View style={styles.subjectWrapper}>
         {subjectData.map((item) => (
-          <View style={styles.subjectCardWrapper}>
+          <View
+            style={[
+              styles.subjectCardWrapper,
+              { marginTop: item.id == 1 ? 10 : 20 },
+            ]}
+          >
             <Image source={item.image} style={styles.subjectCardImage} />
-            <Text>{item.title}</Text>
-            <Text>{item.Learned}</Text>
-            <Feather name="arrow-right" size={16} />
+            <Text style={styles.subjectCardMainText}>{item.title}</Text>
+            <Text style={styles.subjectCardSubText}>
+              Percentage Learned: {item.Learned}
+            </Text>
+            <Feather
+              name="arrow-right"
+              size={16}
+              stye={styles.subjectCardRight}
+            />
           </View>
         ))}
+        <View style={styles.addSubjectContainer}>
+          <TouchableOpacity>
+            <View style={styles.addSubjectWrapper}>
+              <Text style={styles.addSubjectText}>+</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -153,13 +178,35 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 30,
   },
-  subjectWrapper: {},
+  subjectWrapper: {
+    paddingHorizontal: 20,
+  },
   subjectCardWrapper: {
     fontSize: 12,
     flexDirection: "row",
+    backgroundColor: "white",
+    borderRadius: 10,
+    justifyContent: "space-between",
   },
   subjectCardImage: {
-    width: 64,
     height: 64,
+    width: 64,
+    borderTopLeftRadius: 5,
+    borderBottomLeftRadius: 5,
+  },
+  subjectCardMainText: { paddingVertical: 20 },
+  subjectCardSubText: { paddingTop: 10 },
+  addSubjectWrapper: {
+    borderColor: colors.grey,
+    borderRadius: "60%",
+    borderWidth: 1,
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addSubjectContainer: {
+    paddingHorizontal: "45%",
+    marginTop: 20,
   },
 });

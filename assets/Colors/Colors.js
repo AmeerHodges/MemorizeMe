@@ -5,6 +5,7 @@ const colors = {
   textLight: "#b4ccc4",
   white: "#FFF",
   black: "#000",
+  grey: "#c4c4c4",
 };
 
 export default colors;
