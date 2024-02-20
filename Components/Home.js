@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Text,
   View,
@@ -6,15 +6,19 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather"; //public open source icons
 import { MaterialCommunityIcons } from "@expo/vector-icons"; //open source icons
 import colors from "../assets/colors/colors";
+
+/**Import The Data for demo*/
 import infoData from "../assets/data/infoData";
 import subjectData from "../assets/data/subjectsData";
 
-export default Home = () => {
+import Subject from "../Components/Subject.js";
+export default Home = ({ navigation }) => {
   // item pointer function to get data for each item in the info list
   const renderInfoItem = ({ item }) => {
     return (
@@ -37,82 +41,101 @@ export default Home = () => {
       </View>
     );
   };
-  // pointer function to get data for subject items INVALID
-  /**const renderSubjectItem = ({ item }) => {
-    return (
-      <View style={styles.subjectListWrapper}>
-        <Image source={item.image} />
-        <Text>{item.name}</Text>
-        <Text>{item.Learned}</Text>
-      </View>
-    );
-  };*/
+
+  const [displaySubject, setDisplaySubject] = useState(subjectData);
+  const handleAddSubject = () => {
+    setDisplaySubject([
+      ...displaySubject,
+      {
+        id: displaySubject.length + 1,
+        image: require("../assets/images/placeholder_subject.png"),
+        title: "PlaceHolder",
+        Learned: 0,
+      },
+    ]);
+    console.log(displaySubject);
+  };
+
   return (
-    <View style={styles.contianer}>
-      {/** Profile Picture and  Menu Icons, use gettyimage profile picturs and 
+    <ScrollView>
+      <View style={styles.contianer}>
+        {/** Profile Picture and  Menu Icons, use gettyimage profile picturs and 
         open source icons wouldnt let me write this under the return*/}
-      <SafeAreaView>
-        <View style={styles.headerWrapper}>
-          <Image
-            source={require("../assets/images/profile.png")}
-            style={styles.profileImage}
-          />
-          <Feather name="menu" size={24} />
-        </View>
-      </SafeAreaView>
-
-      {/* Welcome Titles */}
-      <View style={styles.titlesWrapper}>
-        <Text style={styles.titlesHeader1}>Welcome!</Text>
-      </View>
-
-      {/* Info Tiles */}
-      <View style={styles.infoWrapper}>
-        <FlatList
-          style={styles.InfoCard}
-          data={infoData}
-          renderItem={renderInfoItem}
-          keyExtractor={(item) => item.id}
-          horizontal={true}
-        ></FlatList>
-      </View>
-
-      {/* Subject Titles */}
-      <View style={styles.titlesWrapper}>
-        <Text style={styles.titlesHeader2}>Subjects</Text>
-      </View>
-
-      {/** Subject Cards */}
-
-      <View style={styles.subjectWrapper}>
-        {subjectData.map((item) => (
-          <View
-            style={[
-              styles.subjectCardWrapper,
-              { marginTop: item.id == 1 ? 10 : 20 },
-            ]}
-          >
-            <Image source={item.image} style={styles.subjectCardImage} />
-            <Text style={styles.subjectCardMainText}>{item.title}</Text>
-            <Text style={styles.subjectCardSubText}>
-              Percentage Learned: {item.Learned}
-            </Text>
-            <Feather
-              name="arrow-right"
-              size={16}
-              stye={styles.subjectCardRight}
+        <SafeAreaView>
+          <View style={styles.headerWrapper}>
+            <Image
+              source={require("../assets/images/profile.png")}
+              style={styles.profileImage}
             />
+            <Feather name="menu" size={24} />
           </View>
-        ))}
-        <View style={styles.addSubjectContainer}>
-          <TouchableOpacity>
-            <View style={styles.addSubjectWrapper}>
-              <Text style={styles.addSubjectText}>+</Text>
-            </View>
-          </TouchableOpacity>
+        </SafeAreaView>
+
+        {/* Welcome Titles */}
+        <View style={styles.titlesWrapper}>
+          <Text style={styles.titlesHeader1}>Welcome!</Text>
+        </View>
+
+        {/* Info Tiles */}
+        <View style={styles.infoWrapper}>
+          <FlatList
+            style={styles.InfoCard}
+            data={infoData}
+            renderItem={renderInfoItem}
+            keyExtractor={(item) => item.id}
+            horizontal={true}
+          ></FlatList>
+        </View>
+
+        {/** Subject Cards */}
+        <View style={styles.subjectWrapper}>
+          <Text style={styles.subjectTitle}>Subjects</Text>
+          {displaySubject.map((item) => {
+            return (
+              <TouchableOpacity
+                key={item.id}
+                onPress={() => navigation.navigate("Subject", { item: item })}
+              >
+                <View
+                  style={[
+                    styles.subjectCardWrapper,
+                    { marginTop: item.id == 1 ? 10 : 20 },
+                  ]}
+                >
+                  <View>
+                    <View>
+                      <View style={styles.subjectLeftWrapper}>
+                        <Text style={styles.subjectMainText}>{item.title}</Text>
+                      </View>
+                      <View style={styles.subjectSubTextWrapper}>
+                        <Text style={styles.subjectSubText}>
+                          progress: {item.Learned}%
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <View style={styles.subjectCardRight}>
+                    <Image source={item.image} style={styles.subjectImage} />
+                    <Feather
+                      name="arrow-right"
+                      size="16"
+                      style={styles.subjectArrow}
+                    />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
+          <View style={styles.addSubjectContainer}>
+            <TouchableOpacity onPress={() => handleAddSubject()}>
+              <View style={styles.addSubjectWrapper}>
+                <Text style={styles.addSubjectText}>+</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -146,12 +169,6 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  titlesHeader2: {
-    fontSize: 28,
-    color: colors.textDark,
-    fontWeight: "800",
-  },
-
   infoWrapper: {
     paddingTop: 20,
   },
@@ -180,22 +197,52 @@ const styles = StyleSheet.create({
   },
   subjectWrapper: {
     paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  subjectTitle: {
+    fontSize: 28,
+    fontWeight: "700",
   },
   subjectCardWrapper: {
-    fontSize: 12,
-    flexDirection: "row",
     backgroundColor: "white",
-    borderRadius: 10,
+    borderRadius: 25,
     justifyContent: "space-between",
+    paddingTop: 20,
+    paddingLeft: 20,
+    flexDirection: "row",
   },
-  subjectCardImage: {
-    height: 64,
+  subjectLeftWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  subjectMainText: {
+    marginLeft: 10,
+    fontSize: 16,
+  },
+  subjectSubTextWrapper: {
+    marginTop: 5,
+    marginBottom: 20,
+    paddingLeft: 10,
+  },
+  subjectSubText: {
+    fontSize: 14,
+    color: colors.grey,
+  },
+  subjectCardRight: {
+    alignContent: "center",
+    flexDirection: "row",
+    paddingBottom: -5,
+    marginTop: -10,
+  },
+  subjectImage: {
     width: 64,
-    borderTopLeftRadius: 5,
-    borderBottomLeftRadius: 5,
+    height: 64,
+    marginRight: 30,
   },
-  subjectCardMainText: { paddingVertical: 20 },
-  subjectCardSubText: { paddingTop: 10 },
+  subjectArrow: {
+    alignSelf: "center",
+    paddingRight: 15,
+  },
   addSubjectWrapper: {
     borderColor: colors.grey,
     borderRadius: "60%",
@@ -208,5 +255,6 @@ const styles = StyleSheet.create({
   addSubjectContainer: {
     paddingHorizontal: "45%",
     marginTop: 20,
+    paddingBottom: 20,
   },
 });

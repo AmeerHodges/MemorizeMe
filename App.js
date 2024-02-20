@@ -2,7 +2,9 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
 import Home from "./Components/Home";
+import Details from "./Components/Home";
 
 //Dont touch this constant, its how im working on navigation
 const Stack = createNativeStackNavigator();
@@ -15,6 +17,11 @@ function App() {
         <Stack.Screen
           name="Home"
           component={Home}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Details"
+          component={Details}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
