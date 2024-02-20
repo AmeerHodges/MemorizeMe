@@ -57,7 +57,7 @@ export default Home = ({ navigation }) => {
   };
 
   return (
-    <ScrollView>
+    <ScrollView showsVerticalScrollIndicator="false">
       <View style={styles.contianer}>
         {/** Profile Picture and  Menu Icons, use gettyimage profile picturs and 
         open source icons wouldnt let me write this under the return*/}
@@ -84,6 +84,7 @@ export default Home = ({ navigation }) => {
             renderItem={renderInfoItem}
             keyExtractor={(item) => item.id}
             horizontal={true}
+            showsHorizontalScrollIndicator={false}
           ></FlatList>
         </View>
 
@@ -118,8 +119,9 @@ export default Home = ({ navigation }) => {
                     <Image source={item.image} style={styles.subjectImage} />
                     <Feather
                       name="arrow-right"
-                      size="16"
-                      style={styles.subjectArrow}
+                      size={16}
+                      style={[styles.subjectArrow, { marginTop: -10 }]}
+                      color={colors.textLight}
                     />
                   </View>
                 </View>

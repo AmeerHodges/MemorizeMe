@@ -4,7 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Home from "./Components/Home";
-import Details from "./Components/Home";
+import Subject from "./Components/Subject";
 
 //Dont touch this constant, its how im working on navigation
 const Stack = createNativeStackNavigator();
@@ -20,8 +20,8 @@ function App() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Details"
-          component={Details}
+          name="Subject"
+          component={Subject}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
