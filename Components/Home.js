@@ -42,6 +42,8 @@ export default Home = ({ navigation }) => {
     );
   };
 
+  //adds a predefined subject to the subject card and live updates the app using use states
+  //TODO: Add a page that takes in the name and image of a subject and creates a new card and appends it to array in subjectsData.js
   const [displaySubject, setDisplaySubject] = useState(subjectData);
   const handleAddSubject = () => {
     setDisplaySubject([
@@ -53,7 +55,6 @@ export default Home = ({ navigation }) => {
         Learned: 0,
       },
     ]);
-    console.log(displaySubject);
   };
 
   return (
@@ -71,11 +72,10 @@ export default Home = ({ navigation }) => {
           </View>
         </SafeAreaView>
 
-        {/* Welcome Titles */}
+        {/* Welcome Title */}
         <View style={styles.titlesWrapper}>
           <Text style={styles.titlesHeader1}>Welcome!</Text>
         </View>
-
         {/* Info Tiles */}
         <View style={styles.infoWrapper}>
           <FlatList
@@ -91,6 +91,7 @@ export default Home = ({ navigation }) => {
         {/** Subject Cards */}
         <View style={styles.subjectWrapper}>
           <Text style={styles.subjectTitle}>Subjects</Text>
+          {/**for each item in displaySubjects, return a new card*/}
           {displaySubject.map((item) => {
             return (
               <TouchableOpacity
@@ -110,7 +111,7 @@ export default Home = ({ navigation }) => {
                       </View>
                       <View style={styles.subjectSubTextWrapper}>
                         <Text style={styles.subjectSubText}>
-                          progress: {item.Learned}%
+                          Progress: {item.Learned}%
                         </Text>
                       </View>
                     </View>
@@ -180,6 +181,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginRight: 30,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
 
   categoryItemMainText: {
@@ -212,6 +218,11 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingLeft: 20,
     flexDirection: "row",
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   subjectLeftWrapper: {
     flexDirection: "row",

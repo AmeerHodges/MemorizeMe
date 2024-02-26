@@ -12,5 +12,14 @@ const subjectDatas = [
     Learned: 30,
   },
 ];
-
+function addSubject(imagePath, name, progress) {
+  subjectDatas([
+    ...{
+      id: subjectDatas.length,
+      image: imagePath,
+      title: name,
+      Learned: progress,
+    },
+  ]);
+}
 export default subjectDatas;
