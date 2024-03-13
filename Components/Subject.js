@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, SafeAreaView, StyleSheet, TouchableOpacity, Image } from "react-native";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Feather from "react-native-vector-icons/Feather";
 import colors from "../assets/Colors/Colors.js";
@@ -14,7 +21,10 @@ export default Subject = ({ route }) => {
     <View style={styles.container}>
       <SafeAreaView>
         <View style={styles.headerWrapper}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
             <Feather name="chevron-left" size={24} color={colors.textDark} />
           </TouchableOpacity>
           <View style={styles.headerLeft}>

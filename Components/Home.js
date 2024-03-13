@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Text,
   View,
@@ -16,9 +16,40 @@ import colors from "../assets/Colors/Colors.js";
 /**Import The Data for demo*/
 import infoData from "../assets/data/infoData";
 import subjectData from "../assets/data/subjectsData";
-
+import * as SQlite from "expo-sqlite";
 import Subject from "../Components/Subject.js";
+
+const db = SQlite.openDatabase("MemorizeMe.db");
+
 export default Home = ({ navigation }) => {
+  const [displaySubject, setDisplaySubject] = useState([]);
+
+  useEffect(() => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS subject (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, progress INTEGER NOT NULL, color TEXT, image TEXT );",
+        [],
+        (_, result) => console.log("table subject succesfully created"),
+        (_, error) => console.log(error)
+      );
+    });
+    /**db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT INTO subject(title, progress, color, image) VALUES ('French', 50 , '#8ab7ff', '../images/french_flag.png');",
+        [],
+        (_, result) => console.log("inserted new subject"),
+        (_, error) => console.log(error)
+      );
+    });*/
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * from subject",
+        [],
+        (_, result) => console.log(setDisplaySubject(result.rows._array)),
+        (_, error) => console.log(error)
+      );
+    });
+  }, []);
   // item pointer function to get data for each item in the info list
   const renderInfoItem = ({ item }) => {
     return (
@@ -43,18 +74,16 @@ export default Home = ({ navigation }) => {
   };
 
   //adds a predefined subject to the subject card and live updates the app using use states
-  //TODO: Add a page that takes in the name and image of a subject and creates a new card and appends it to array in subjectsData.js
-  const [displaySubject, setDisplaySubject] = useState(subjectData);
+
   const handleAddSubject = () => {
-    setDisplaySubject([
-      ...displaySubject,
-      {
-        id: displaySubject.length + 1,
-        image: require("../assets/images/placeholder_subject.png"),
-        title: "PlaceHolder",
-        Learned: 0,
-      },
-    ]);
+    db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT INTO subject(title, progress, color, image) VALUES ('New Subject', '0', '#FFF' ,'../images/placeholder_subject.png'",
+        [],
+        (_, result) => console.log("seccessfull new Subject"),
+        (_, error) => console.log(error)
+      );
+    }, []);
   };
 
   return (
@@ -101,7 +130,10 @@ export default Home = ({ navigation }) => {
                 <View
                   style={[
                     styles.subjectCardWrapper,
-                    { marginTop: item.id == 1 ? 10 : 20 },
+                    {
+                      marginTop: item.id == 1 ? 10 : 20,
+                      borderColor: item.color,
+                    },
                   ]}
                 >
                   <View>
@@ -111,7 +143,7 @@ export default Home = ({ navigation }) => {
                       </View>
                       <View style={styles.subjectSubTextWrapper}>
                         <Text style={styles.subjectSubText}>
-                          Progress: {item.Learned}%
+                          Progress: {item.progress}%
                         </Text>
                       </View>
                     </View>
@@ -223,6 +255,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
     elevation: 2,
+    borderWidth: 1,
   },
   subjectLeftWrapper: {
     flexDirection: "row",
