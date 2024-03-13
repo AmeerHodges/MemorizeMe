@@ -4,7 +4,7 @@ import subjectDatas from "./subjectsData";
 function average() {
   var total = 0;
   subjectDatas.forEach((item) => {
-    total += item.Learned;
+    total += item.Progress;
   });
   return total / subjectDatas.length;
 }
