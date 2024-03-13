@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather"; //public open source icons
 import { MaterialCommunityIcons } from "@expo/vector-icons"; //open source icons
-import colors from "../assets/colors/colors";
+import colors from "../assets/Colors/Colors.js";
 
 /**Import The Data for demo*/
 import infoData from "../assets/data/infoData";
