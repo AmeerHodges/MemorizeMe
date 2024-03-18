@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -13,10 +13,41 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
 import colors from "../assets/Colors/Colors.js";
 import Login from "./Login.js";
+import * as SQLite from "expo-sqlite";
+
+//open database
+const db = SQLite.openDatabase("MemorizeMe.db");
 
 export default Signup = ({ navigation }) => {
+  /**intialise Database*/
+  useEffect(() => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
+          "username TEXT UNIQUE NOT NULL, password TEXT NOT NULL);",
+        [],
+        (_, result) => console.log("table users successfully created"),
+        (_, error) => console.log(error)
+      );
+    });
+  }, []);
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  function createUser() {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT INTO users(username, password) VALUES(?, ?)",
+        [username, password],
+        (_, result) => console.log("successfully created new user"),
+        (_, error) => console.log(error)
+      );
+    });
+  }
+
   return (
-    <View style={styles.contianer}>
+    <View style={styles.container}>
       <SafeAreaView>
         <View>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -33,20 +64,28 @@ export default Signup = ({ navigation }) => {
       <View style={styles.formContainer}>
         <View styles={styles.form}>
           <Text style={[styles.inputLabel, { paddingTop: 15 }]}>Username</Text>
-          <TextInput style={styles.inputs} placeholder="Enter Username" />
+          <TextInput
+            style={styles.inputs}
+            placeholder="Enter Username"
+            onChangeText={setUsername}
+          />
         </View>
         <Text style={styles.inputLabel}>Password</Text>
         <TextInput
           style={styles.inputs}
           placeholder="Enter Password"
           secureTextEntry
+          onChangeText={setPassword}
         />
-        <TouchableOpacity style={styles.signButton}>
+        <TouchableOpacity
+          style={styles.signButton}
+          onPress={() => createUser()}
+        >
           <Text style={styles.signText}>Sign Up</Text>
         </TouchableOpacity>
         <View style={styles.redirectToLogin}>
           <Text>Already Have An Account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate(Login)}>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
             <Text style={{ color: Colors.primary }}>Log in</Text>
           </TouchableOpacity>
         </View>
@@ -56,7 +95,7 @@ export default Signup = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  contianer: {
+  container: {
     flex: 1,
     backgroundColor: Colors.primary,
   },

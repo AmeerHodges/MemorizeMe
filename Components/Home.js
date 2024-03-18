@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather"; //public open source icons
 import { MaterialCommunityIcons } from "@expo/vector-icons"; //open source icons
 import colors from "../assets/Colors/Colors.js";
-
+import * as Drawer from "@react-navigation/drawer";
 /**Import The Data for demo*/
 import infoData from "../assets/data/infoData";
 import subjectData from "../assets/data/subjectsData";
@@ -28,7 +28,8 @@ export default Home = ({ navigation }) => {
   useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS subject (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, progress INTEGER NOT NULL, color TEXT, image TEXT );",
+        "CREATE TABLE IF NOT EXISTS subject (id INTEGER PRIMARY KEY AUTOINCREMENT," +
+          " title TEXT NOT NULL, progress INTEGER NOT NULL, color TEXT, image TEXT );",
         [],
         (_, result) => console.log("table subject succesfully created"),
         (_, error) => console.log(error)
@@ -98,7 +99,9 @@ export default Home = ({ navigation }) => {
               source={require("../assets/images/profile.png")}
               style={styles.profileImage}
             />
-            <Feather name="menu" size={24} />
+            <TouchableOpacity onPress={() => navigation.openDrawer()}>
+              <Feather name="menu" size={24} />
+            </TouchableOpacity>
           </View>
         </SafeAreaView>
 

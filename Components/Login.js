@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -12,19 +12,43 @@ import Colors from "../assets/Colors/Colors.js";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
 import colors from "../assets/Colors/Colors.js";
-import SignUp from "./Signup.js";
 import * as SQLite from "expo-sqlite";
 
+//open databse
 const db = SQLite.openDatabase("MemorizeMe.db");
+
 export default Login = ({ navigation }) => {
+  /** intialise database*/
   useEffect(() => {
     db.transaction((tx) => {
-      tx.executeSql("SELECT * FROM TABLE users"),
+      tx.executeSql(
+        "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
+          "username TEXT UNIQUE NOT NULL, password TEXT NOT NULL);",
         [],
-        (_, result) => console.log(result),
-        (_, error) => console.log(error);
+        (_, result) => console.log("table users successfully created"),
+        (_, error) => console.log(error)
+      );
     });
-  });
+  }, []);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  function handelLogin() {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * FROM USERS WHERE username = ? AND password = ?",
+        [username, password],
+        (_, { rows }) => {
+          if (rows.length > 0) {
+            navigation.navigate("Home");
+          } else {
+            alert("invalid Details");
+          }
+        },
+        (_, error) => console.log(error)
+      );
+    });
+  }
   return (
     <View style={styles.contianer}>
       <SafeAreaView>
@@ -43,20 +67,25 @@ export default Login = ({ navigation }) => {
       <View style={styles.formContainer}>
         <View styles={styles.form}>
           <Text style={[styles.inputLabel, { paddingTop: 15 }]}>Username</Text>
-          <TextInput style={styles.inputs} placeholder="Enter Username" />
+          <TextInput
+            style={styles.inputs}
+            placeholder="Enter Username"
+            onChangeText={setUsername}
+          />
         </View>
         <Text style={styles.inputLabel}>Password</Text>
         <TextInput
           style={styles.inputs}
           placeholder="Enter Password"
           secureTextEntry
+          onChangeText={setPassword}
         />
-        <TouchableOpacity style={styles.loginButton}>
+        <TouchableOpacity style={styles.loginButton} onPress={handelLogin}>
           <Text style={styles.loginText}>Log in</Text>
         </TouchableOpacity>
         <View style={styles.redirectToLogin}>
           <Text>Don't Have An Account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate(Signup)}>
+          <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
             <Text style={{ color: Colors.primary }}>Sign Up</Text>
           </TouchableOpacity>
         </View>

@@ -9,8 +9,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Colors from "../assets/Colors/Colors.js";
-import Login from "./Login.js";
-import Signup from "./Signup.js";
 
 export default Welcome = ({ navigation }) => {
   return (
@@ -26,13 +24,13 @@ export default Welcome = ({ navigation }) => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.ActionsButtons}
-            onPress={() => navigation.navigate(Signup)}
+            onPress={() => navigation.navigate("Signup")}
           >
             <Text style={styles.ActionText}>Sign Up</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.ActionsButtons}
-            onPress={() => navigation.navigate(Login)}
+            onPress={() => navigation.navigate("Login")}
           >
             <Text style={styles.ActionText}>Log In</Text>
           </TouchableOpacity>

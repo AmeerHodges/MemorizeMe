@@ -7,7 +7,7 @@ import Home from "./Components/Home";
 import Subject from "./Components/Subject";
 import Welcome from "./Components/Welcome";
 import Login from "./Components/Login";
-import SignUp from "./Components/Signup";
+import Signup from "./Components/Signup";
 
 import * as SQlite from "expo-sqlite";
 
@@ -15,58 +15,47 @@ import * as SQlite from "expo-sqlite";
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 const loginStatus = false;
+
 //what loads up when the page starts
 export default function App() {
-  if (loginStatus == true) {
-    return (
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="Home"
-            component={Home}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Subject"
-            component={Subject}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    );
-  } else {
-    return (
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="Welcome"
-            component={Welcome}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Signup"
-            component={SignUp}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Login"
-            component={Login}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Home"
-            component={Home}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Subject"
-            component={Subject}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-    );
-  }
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        {loginStatus ? (
+          <>
+            <Stack.Screen
+              name="Home"
+              component={Home}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Subject"
+              component={Subject}
+              options={{ headerShown: false }}
+            />
+          </>
+        ) : (
+          <>
+            <Stack.Screen
+              name="Welcome"
+              component={Welcome}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Signup"
+              component={Signup}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Login"
+              component={Login}
+              options={{ headerShown: false }}
+            />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
 }
 
 // All CSS goes here, Same format As CSS if you know it
