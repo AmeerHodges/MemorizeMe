@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -12,19 +12,9 @@ import Colors from "../assets/Colors/Colors.js";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
 import colors from "../assets/Colors/Colors.js";
-import SignUp from "./Signup.js";
-import * as SQLite from "expo-sqlite";
+import Login from "./Login.js";
 
-const db = SQLite.openDatabase("MemorizeMe.db");
-export default Login = ({ navigation }) => {
-  useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql("SELECT * FROM TABLE users"),
-        [],
-        (_, result) => console.log(result),
-        (_, error) => console.log(error);
-    });
-  });
+export default Signup = ({ navigation }) => {
   return (
     <View style={styles.contianer}>
       <SafeAreaView>
@@ -35,7 +25,7 @@ export default Login = ({ navigation }) => {
         </View>
         <View style={styles.imageContainer}>
           <Image
-            source={require("../assets/images/login.png")}
+            source={require("../assets/images/SignUp.png")}
             style={{ width: 200, height: 200, marginTop: 20 }}
           />
         </View>
@@ -51,13 +41,13 @@ export default Login = ({ navigation }) => {
           placeholder="Enter Password"
           secureTextEntry
         />
-        <TouchableOpacity style={styles.loginButton}>
-          <Text style={styles.loginText}>Log in</Text>
+        <TouchableOpacity style={styles.signButton}>
+          <Text style={styles.signText}>Sign Up</Text>
         </TouchableOpacity>
         <View style={styles.redirectToLogin}>
-          <Text>Don't Have An Account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate(Signup)}>
-            <Text style={{ color: Colors.primary }}>Sign Up</Text>
+          <Text>Already Have An Account? </Text>
+          <TouchableOpacity onPress={() => navigation.navigate(Login)}>
+            <Text style={{ color: Colors.primary }}>Log in</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -98,13 +88,13 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.grey,
     color: Colors.textDark,
   },
-  loginButton: {
+  signButton: {
     backgroundColor: Colors.secondary,
     borderRadius: 15,
     paddingVertical: 15,
     marginTop: 20,
   },
-  loginText: {
+  signText: {
     textAlign: "center",
     fontWeight: "bold",
     color: colors.textDark,

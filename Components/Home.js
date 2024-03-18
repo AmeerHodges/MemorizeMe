@@ -16,14 +16,15 @@ import colors from "../assets/Colors/Colors.js";
 /**Import The Data for demo*/
 import infoData from "../assets/data/infoData";
 import subjectData from "../assets/data/subjectsData";
-import * as SQlite from "expo-sqlite";
 import Subject from "../Components/Subject.js";
+import * as SQlite from "expo-sqlite";
 
 const db = SQlite.openDatabase("MemorizeMe.db");
 
 export default Home = ({ navigation }) => {
   const [displaySubject, setDisplaySubject] = useState([]);
 
+  // initialise database
   useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
@@ -50,6 +51,7 @@ export default Home = ({ navigation }) => {
       );
     });
   }, []);
+
   // item pointer function to get data for each item in the info list
   const renderInfoItem = ({ item }) => {
     return (
@@ -73,8 +75,7 @@ export default Home = ({ navigation }) => {
     );
   };
 
-  //adds a predefined subject to the subject card and live updates the app using use states
-
+  //adds a predefined subject to databse and updates app
   const handleAddSubject = () => {
     db.transaction((tx) => {
       tx.executeSql(
