@@ -24,8 +24,9 @@ export default Login = ({ navigation }) => {
       tx.executeSql(
         "CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
           "username TEXT UNIQUE NOT NULL, password TEXT NOT NULL);",
+        /**"SELECT * FROM users;",*/
         [],
-        (_, result) => console.log("table users successfully created"),
+        (_, result) => console.log(result.rows._array),
         (_, error) => console.log(error)
       );
     });

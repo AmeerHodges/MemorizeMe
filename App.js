@@ -51,6 +51,16 @@ export default function App() {
               component={Login}
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="Home"
+              component={Home}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Subject"
+              component={Subject}
+              options={{ headerShown: false }}
+            />
           </>
         )}
       </Stack.Navigator>
