@@ -14,7 +14,7 @@ import * as SQlite from "expo-sqlite";
 //Dont touch this constant, its how im working on navigation
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
-const loginStatus = false;
+const loginStatus = true;
 
 //what loads up when the page starts
 export default function App() {
@@ -67,6 +67,3 @@ export default function App() {
     </NavigationContainer>
   );
 }
-
-// All CSS goes here, Same format As CSS if you know it
-const styles = StyleSheet.create({});

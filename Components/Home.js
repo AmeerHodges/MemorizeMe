@@ -37,8 +37,11 @@ export default Home = ({ navigation }) => {
     });
     /**db.transaction((tx) => {
       tx.executeSql(
-        "INSERT INTO subject(title, progress, color, image) VALUES ('French', 50 , '#8ab7ff', '../images/french_flag.png');",
-        [],
+        "INSERT INTO subject(title, progress, color, image) VALUES ('French', 50 , '#8ab7ff', ?);",
+        [
+          Image.resolveAssetSource(require("../assets/images/french_flag.png"))
+            .uri,
+        ],
         (_, result) => console.log("inserted new subject"),
         (_, error) => console.log(error)
       );
@@ -47,7 +50,10 @@ export default Home = ({ navigation }) => {
       tx.executeSql(
         "SELECT * from subject",
         [],
-        (_, result) => console.log(setDisplaySubject(result.rows._array)),
+        (_, result) => {
+          console.log(result.rows._array);
+          setDisplaySubject(result.rows._array);
+        },
         (_, error) => console.log(error)
       );
     });
@@ -56,22 +62,24 @@ export default Home = ({ navigation }) => {
   // item pointer function to get data for each item in the info list
   const renderInfoItem = ({ item }) => {
     return (
-      <View
-        style={[
-          styles.categoryListWrapper,
-          {
-            backgroundColor: item.selected ? colors.primary : colors.white,
-            color: item.selected ? colors.textLight : colors.textDark,
-            marginLeft: item.id == 1 ? 30 : 0,
-          },
-        ]}
-      >
-        <Text style={styles.categoryItemMainText}>
-          {" "}
-          {item.Data}{" "}
-          <MaterialCommunityIcons name={item.iconName} size={item.iconSize} />
-        </Text>
-        <Text style={styles.categoryItemSubText}>{item.title}</Text>
+      <View>
+        <View
+          style={[
+            styles.categoryListWrapper,
+            {
+              backgroundColor: item.selected ? colors.primary : colors.white,
+              color: item.selected ? colors.textLight : colors.textDark,
+              marginLeft: item.id == 1 ? 30 : 0,
+            },
+          ]}
+        >
+          <Text style={styles.categoryItemMainText}>
+            {" "}
+            {item.Data}{" "}
+            <MaterialCommunityIcons name={item.iconName} size={item.iconSize} />
+          </Text>
+          <Text style={styles.categoryItemSubText}>{item.title}</Text>
+        </View>
       </View>
     );
   };
@@ -80,12 +88,31 @@ export default Home = ({ navigation }) => {
   const handleAddSubject = () => {
     db.transaction((tx) => {
       tx.executeSql(
-        "INSERT INTO subject(title, progress, color, image) VALUES ('New Subject', '0', '#FFF' ,'../images/placeholder_subject.png'",
-        [],
+        "INSERT INTO subject(title, progress, color, image) VALUES (?, ?, ? ,?);",
+        [
+          "New Subject",
+          "0",
+          "#000",
+          Image.resolveAssetSource(
+            require("../assets/images/placeholder_subject.png")
+          ).uri,
+        ],
         (_, result) => console.log("seccessfull new Subject"),
         (_, error) => console.log(error)
       );
-    }, []);
+    });
+    setDisplaySubject((displaySubject) => [
+      ...displaySubject,
+      {
+        id: displaySubject.length + 1,
+        title: "New Subject",
+        progress: "0",
+        color: "Colors.black",
+        image: Image.resolveAssetSource(
+          require("../assets/images/placeholder_subject.png")
+        ).uri,
+      },
+    ]);
   };
 
   return (
@@ -107,7 +134,7 @@ export default Home = ({ navigation }) => {
 
         {/* Welcome Title */}
         <View style={styles.titlesWrapper}>
-          <Text style={styles.titlesHeader1}>Welcome!</Text>
+          <Text style={styles.titlesHeader1}>Welcome Back!</Text>
         </View>
         {/* Info Tiles */}
         <View style={styles.infoWrapper}>
@@ -153,7 +180,10 @@ export default Home = ({ navigation }) => {
                     </View>
                   </View>
                   <View style={styles.subjectCardRight}>
-                    <Image source={item.image} style={styles.subjectImage} />
+                    <Image
+                      source={{ uri: item.image }}
+                      style={styles.subjectImage}
+                    />
                     <Feather
                       name="arrow-right"
                       size={16}
@@ -211,7 +241,6 @@ const styles = StyleSheet.create({
   infoWrapper: {
     paddingTop: 20,
   },
-
   categoryListWrapper: {
     borderRadius: 10,
     alignItems: "center",
