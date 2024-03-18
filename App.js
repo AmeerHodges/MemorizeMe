@@ -14,7 +14,7 @@ import * as SQlite from "expo-sqlite";
 //Dont touch this constant, its how im working on navigation
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
-const loginStatus = true;
+const loginStatus = false;
 
 //what loads up when the page starts
 export default function App() {
