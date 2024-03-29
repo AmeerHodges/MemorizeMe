@@ -12,6 +12,7 @@ import Colors from "../assets/Colors/Colors.js";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
 import colors from "../assets/Colors/Colors.js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SQLite from "expo-sqlite";
 
 //open databse
@@ -37,10 +38,12 @@ export default Login = ({ navigation }) => {
   function handelLogin() {
     db.transaction((tx) => {
       tx.executeSql(
-        "SELECT * FROM USERS WHERE username = ? AND password = ?",
+        "SELECT * FROM users WHERE username = ? AND password = ?",
         [username, password],
         (_, { rows }) => {
           if (rows.length > 0) {
+            const id = rows.item(0).id;
+            AsyncStorage.setItem("userId", String(id));
             navigation.navigate("Home");
           } else {
             alert("invalid Details");

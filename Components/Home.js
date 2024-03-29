@@ -12,66 +12,93 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather"; //public open source icons
 import { MaterialCommunityIcons } from "@expo/vector-icons"; //open source icons
 import colors from "../assets/Colors/Colors.js";
-import * as Drawer from "@react-navigation/drawer";
-/**Import The Data for demo*/
+
 import infoData from "../assets/data/infoData";
-import subjectData from "../assets/data/subjectsData";
 import Subject from "../Components/Subject.js";
 import * as SQlite from "expo-sqlite";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const db = SQlite.openDatabase("MemorizeMe.db");
 
 export default Home = ({ navigation }) => {
   const [displaySubject, setDisplaySubject] = useState([]);
+  const [user_id, setuser_id] = useState();
 
   // initialise database
   useEffect(() => {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "CREATE TABLE IF NOT EXISTS subject (id INTEGER PRIMARY KEY AUTOINCREMENT," +
-          " title TEXT NOT NULL, progress INTEGER NOT NULL, color TEXT, image TEXT );",
-        [],
-        (_, result) => console.log("table subject succesfully created"),
-        (_, error) => console.log(error)
-      );
-    });
-    /**db.transaction((tx) => {
-      tx.executeSql(
-        "INSERT INTO subject(title, progress, color, image) VALUES ('French', 50 , '#8ab7ff', '../images/french_flag.png');",
-        [],
-        (_, result) => console.log("inserted new subject"),
-        (_, error) => console.log(error)
-      );
-    });*/
-    db.transaction((tx) => {
-      tx.executeSql(
-        "SELECT * from subject",
-        [],
-        (_, result) => console.log(setDisplaySubject(result.rows._array)),
-        (_, error) => console.log(error)
-      );
-    });
+    const intialiseDataBase = async () => {
+      //set the user id after getting it from local storage
+      const user_id = parseInt(await AsyncStorage.getItem("userId"));
+      setuser_id(user_id);
+      /**db.transaction((tx) => {
+        tx.executeSql(
+          "DROP TABLE subject",
+          [],
+          (_, result) => console.log("table subject succesfully dropped"),
+          (_, error) => console.log(error)
+        );
+      });*/
+      db.transaction((tx) => {
+        //create table if not exists
+        tx.executeSql(
+          "CREATE TABLE IF NOT EXISTS subject (id INTEGER PRIMARY KEY AUTOINCREMENT," +
+            " title TEXT NOT NULL, progress INTEGER NOT NULL, color TEXT, image TEXT , User_id INTEGER NOT NULL , FOREIGN KEY(User_id) REFERENCES users(id));",
+          [],
+          (_, result) => console.log("table subject succesfully created"),
+          (_, error) => console.log(error)
+        );
+      });
+      /**db.transaction((tx) => {
+        tx.executeSql(
+          "INSERT INTO subject(title, progress, color, image,User_id) VALUES ('French', 50 , '#8ab7ff', ?, ?);",
+          [
+            Image.resolveAssetSource(
+              require("../assets/images/french_flag.png")
+            ).uri,
+            user_id,
+          ],
+          (_, result) => console.log("inserted new subject"),
+          (_, error) => console.log(error)
+        );
+      });8*/
+      console.log(user_id);
+      //Select and display subjects
+      db.transaction((tx) => {
+        tx.executeSql(
+          "SELECT * from subject where User_id = ?",
+          [user_id],
+          (_, result) => {
+            console.log(result.rows._array);
+            setDisplaySubject(result.rows._array);
+          },
+          (_, error) => console.log(error)
+        );
+      });
+    };
+    intialiseDataBase();
   }, []);
 
   // item pointer function to get data for each item in the info list
   const renderInfoItem = ({ item }) => {
     return (
-      <View
-        style={[
-          styles.categoryListWrapper,
-          {
-            backgroundColor: item.selected ? colors.primary : colors.white,
-            color: item.selected ? colors.textLight : colors.textDark,
-            marginLeft: item.id == 1 ? 30 : 0,
-          },
-        ]}
-      >
-        <Text style={styles.categoryItemMainText}>
-          {" "}
-          {item.Data}{" "}
-          <MaterialCommunityIcons name={item.iconName} size={item.iconSize} />
-        </Text>
-        <Text style={styles.categoryItemSubText}>{item.title}</Text>
+      <View>
+        <View
+          style={[
+            styles.categoryListWrapper,
+            {
+              backgroundColor: item.selected ? colors.primary : colors.white,
+              color: item.selected ? colors.textLight : colors.textDark,
+              marginLeft: item.id == 1 ? 30 : 0,
+            },
+          ]}
+        >
+          <Text style={styles.categoryItemMainText}>
+            {" "}
+            {item.Data}{" "}
+            <MaterialCommunityIcons name={item.iconName} size={item.iconSize} />
+          </Text>
+          <Text style={styles.categoryItemSubText}>{item.title}</Text>
+        </View>
       </View>
     );
   };
@@ -80,98 +107,114 @@ export default Home = ({ navigation }) => {
   const handleAddSubject = () => {
     db.transaction((tx) => {
       tx.executeSql(
-        "INSERT INTO subject(title, progress, color, image) VALUES ('New Subject', '0', '#FFF' ,'../images/placeholder_subject.png'",
-        [],
+        "INSERT INTO subject(title, progress, color, image, User_id) VALUES (?, ?, ? ,?, ?);",
+        [
+          "New Subject",
+          "0",
+          "#000",
+          Image.resolveAssetSource(
+            require("../assets/images/placeholder_subject.png")
+          ).uri,
+          user_id,
+        ],
         (_, result) => console.log("seccessfull new Subject"),
         (_, error) => console.log(error)
       );
-    }, []);
+    });
+    setDisplaySubject((displaySubject) => [
+      ...displaySubject,
+      {
+        id: displaySubject.length + 1,
+        title: "New Subject",
+        progress: "0",
+        color: "Colors.black",
+        image: Image.resolveAssetSource(
+          require("../assets/images/placeholder_subject.png")
+        ).uri,
+      },
+    ]);
   };
 
   return (
-    <ScrollView showsVerticalScrollIndicator="false">
-      <View style={styles.contianer}>
-        {/** Profile Picture and  Menu Icons, use gettyimage profile picturs and 
-        open source icons wouldnt let me write this under the return*/}
-        <SafeAreaView>
-          <View style={styles.headerWrapper}>
-            <Image
-              source={require("../assets/images/profile.png")}
-              style={styles.profileImage}
-            />
-            <TouchableOpacity onPress={() => navigation.openDrawer()}>
-              <Feather name="menu" size={24} />
-            </TouchableOpacity>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator="false">
+      {/** Profile Picture and  Menu Icons*/}
+      <SafeAreaView>
+        <View style={styles.headerWrapper}>
+          <Image
+            source={require("../assets/images/profile.png")}
+            style={styles.profileImage}
+          />
+          <View style={styles.titlesWrapper}>
+            <Text style={styles.titlesHeader1}>Welcome Back!</Text>
           </View>
-        </SafeAreaView>
-
-        {/* Welcome Title */}
-        <View style={styles.titlesWrapper}>
-          <Text style={styles.titlesHeader1}>Welcome!</Text>
         </View>
-        {/* Info Tiles */}
-        <View style={styles.infoWrapper}>
-          <FlatList
-            style={styles.InfoCard}
-            data={infoData}
-            renderItem={renderInfoItem}
-            keyExtractor={(item) => item.id}
-            horizontal={true}
-            showsHorizontalScrollIndicator={false}
-          ></FlatList>
-        </View>
+      </SafeAreaView>
 
-        {/** Subject Cards */}
-        <View style={styles.subjectWrapper}>
-          <Text style={styles.subjectTitle}>Subjects</Text>
-          {/**for each item in displaySubjects, return a new card*/}
-          {displaySubject.map((item) => {
-            return (
-              <TouchableOpacity
-                key={item.id}
-                onPress={() => navigation.navigate("Subject", { item: item })}
+      {/* Info Tiles */}
+      <View style={styles.infoWrapper}>
+        <FlatList
+          style={styles.InfoCard}
+          data={infoData}
+          renderItem={renderInfoItem}
+          keyExtractor={(item) => item.id}
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+        ></FlatList>
+      </View>
+
+      {/** Subject Cards */}
+      <View style={styles.subjectWrapper}>
+        <Text style={styles.subjectTitle}>Subjects</Text>
+        {/**for each item in displaySubjects, return a new card*/}
+        {displaySubject.map((item) => {
+          return (
+            <TouchableOpacity
+              key={item.id}
+              onPress={() => navigation.navigate("Cards", { item: item })}
+            >
+              <View
+                style={[
+                  styles.subjectCardWrapper,
+                  {
+                    marginTop: item.id == 1 ? 10 : 20,
+                    borderColor: item.color,
+                  },
+                ]}
               >
-                <View
-                  style={[
-                    styles.subjectCardWrapper,
-                    {
-                      marginTop: item.id == 1 ? 10 : 20,
-                      borderColor: item.color,
-                    },
-                  ]}
-                >
+                <View>
                   <View>
-                    <View>
-                      <View style={styles.subjectLeftWrapper}>
-                        <Text style={styles.subjectMainText}>{item.title}</Text>
-                      </View>
-                      <View style={styles.subjectSubTextWrapper}>
-                        <Text style={styles.subjectSubText}>
-                          Progress: {item.progress}%
-                        </Text>
-                      </View>
+                    <View style={styles.subjectLeftWrapper}>
+                      <Text style={styles.subjectMainText}>{item.title}</Text>
+                    </View>
+                    <View style={styles.subjectSubTextWrapper}>
+                      <Text style={styles.subjectSubText}>
+                        Progress: {item.progress}%
+                      </Text>
                     </View>
                   </View>
-                  <View style={styles.subjectCardRight}>
-                    <Image source={item.image} style={styles.subjectImage} />
-                    <Feather
-                      name="arrow-right"
-                      size={16}
-                      style={[styles.subjectArrow, { marginTop: -10 }]}
-                      color={colors.textLight}
-                    />
-                  </View>
                 </View>
-              </TouchableOpacity>
-            );
-          })}
-          <View style={styles.addSubjectContainer}>
-            <TouchableOpacity onPress={() => handleAddSubject()}>
-              <View style={styles.addSubjectWrapper}>
-                <Text style={styles.addSubjectText}>+</Text>
+                <View style={styles.subjectCardRight}>
+                  <Image
+                    source={{ uri: item.image }}
+                    style={styles.subjectImage}
+                  />
+                  <Feather
+                    name="arrow-right"
+                    size={16}
+                    style={[styles.subjectArrow, { marginTop: -10 }]}
+                    color={colors.textLight}
+                  />
+                </View>
               </View>
             </TouchableOpacity>
-          </View>
+          );
+        })}
+        <View style={styles.addSubjectContainer}>
+          <TouchableOpacity onPress={() => handleAddSubject()}>
+            <View style={styles.addSubjectWrapper}>
+              <Text style={styles.addSubjectText}>+</Text>
+            </View>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -192,9 +235,11 @@ const styles = StyleSheet.create({
   },
 
   profileImage: {
-    width: 40,
-    height: 40,
+    width: 60,
+    height: 60,
     borderRadius: 40,
+    marginTop: 20,
+    marginLeft: 15,
   },
 
   titlesWrapper: {
@@ -211,7 +256,6 @@ const styles = StyleSheet.create({
   infoWrapper: {
     paddingTop: 20,
   },
-
   categoryListWrapper: {
     borderRadius: 10,
     alignItems: "center",

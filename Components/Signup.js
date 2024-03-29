@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  KeyboardAvoidingView,
 } from "react-native";
 import Colors from "../assets/Colors/Colors.js";
 import { SafeAreaView } from "react-native-safe-area-context";
