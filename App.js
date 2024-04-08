@@ -11,6 +11,7 @@ import Settings from "./Components/Settings";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
+import Topics from "./Components/Topics";
 
 //Dont touch this constant, its how im working on navigation
 const Stack = createNativeStackNavigator();
@@ -85,6 +86,11 @@ export default function App() {
             <Stack.Screen
               name="Subject"
               component={Subject}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Topics"
+              component={Topics}
               options={{ headerShown: false }}
             />
             <Stack.Screen

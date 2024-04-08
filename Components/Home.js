@@ -14,7 +14,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons"; //open source icons
 import colors from "../assets/Colors/Colors.js";
 
 import infoData from "../assets/data/infoData";
-import Subject from "../Components/Subject.js";
+import Topics from "../Components/Topics.js";
 import * as SQlite from "expo-sqlite";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -170,7 +170,7 @@ export default Home = ({ navigation }) => {
           return (
             <TouchableOpacity
               key={item.id}
-              onPress={() => navigation.navigate("Cards", { item: item })}
+              onPress={() => navigation.navigate("Topics", { item: item })}
             >
               <View
                 style={[
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   addSubjectContainer: {
     paddingHorizontal: "45%",
-    marginTop: 20,
+    marginTop: 100,
     paddingBottom: 20,
   },
 });
