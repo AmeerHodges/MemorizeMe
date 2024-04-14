@@ -7,6 +7,8 @@ import {
   Animated,
   Modal,
   Pressable,
+  TextInput,
+  Button,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
@@ -21,29 +23,35 @@ export default Cards = ({ route }) => {
   const topic_id = item.id;
   const navigation = useNavigation();
   const [isFlipped, setisFlipped] = useState(false);
-  const [prompt, setprompt] = useState("Front");
-  const [answer, setanswer] = useState("back");
+  const [prompt, setprompt] = useState("No Cards Yet!");
+  const [answer, setanswer] = useState(
+    "Press The + in the Top Right To Add Custom Flash Cards"
+  );
   const [allCards, setAllCards] = useState([]);
   const [currentCard, setcurrentCard] = useState();
   const [flipAnimation] = useState(new Animated.Value(0));
   const [modalvisible, setmodalvisible] = useState(false);
+  const [addCardsModal, setAddCardsModal] = useState(false);
+  const [newCardPrompt, setNewCardPrompt] = useState("");
+  const [newCardAnswer, setNewCardAnswer] = useState("");
+
   useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
         "CREATE TABLE IF NOT EXISTS Cards (id INTEGER PRIMARY KEY AUTOINCREMENT," +
-          " prompt TEXT NOT NULL, answer INTEGER NOT NULL, topic_id INTEGER NOT NULL, confidence INTEGER DEFAULT 0, FOREIGN KEY(topic_id) REFERENCES topics(id) );",
+          " prompt TEXT NOT NULL, answer INTEGER NOT NULL, topic_id INTEGER NOT NULL, confidence INTEGER DEFAULT 0, FOREIGN KEY(topic_id) REFERENCES topics(id) ON DELETE CASCADE);",
         [],
         (_, result) => console.log("table Cards successfully created"),
         (_, error) => console.log(error)
       );
       /**tx.executeSql(
-        "insert into Cards(prompt, answer, topic_id) Values ('Banane', 'Banana', 1)",
+        "insert into Cards(prompt, answer, topic_id) Values ('Salle de classe', 'Classroom', 2)",
         (_, result) => console.log("inserted banana"),
         (_, error) => console.log(error)
       );*/
       /**tx.executeSql(
         "DELETE FROM Cards WHERE id = ?",
-        [3],
+        [],
         (_, result) => console.log("removed banana"),
         (_, error) => console.log(error)
       );*/
@@ -98,7 +106,25 @@ export default Cards = ({ route }) => {
       setmodalvisible(true);
     }
   };
-
+  const handleAddCard = () => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT INTO Cards(prompt, answer, topic_id) VALUES (?, ? ,?)",
+        [newCardPrompt, newCardAnswer, topic_id],
+        (_, result) => [
+          alert("New Card Created"),
+          setNewCardAnswer(""),
+          setNewCardPrompt(""),
+          setAllCards(...allCards, {
+            answer: newCardAnswer,
+            confidence: 0,
+            newCardPrompt,
+          }),
+        ],
+        (_, error) => alert(error)
+      );
+    });
+  };
   const handleRating = (value) => {
     //** update confidence for that car in the database, the show the next card */
     db.transaction((tx) => {
@@ -146,10 +172,20 @@ export default Cards = ({ route }) => {
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Feather name="chevron-left" size={24} color={Colors.grey} />
+            <Feather name="chevron-left" size={24} color={Colors.white} />
           </TouchableOpacity>
           <View style={styles.headerLeft}>
-            <Text>{item.title} Topics</Text>
+            <Text style={{ color: Colors.white, marginLeft: -10 }}>
+              {item.name} Topics
+            </Text>
+          </View>
+          <View style={styles.headerRight}>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setAddCardsModal(true)}
+            >
+              <Feather name="plus" size={24} color={Colors.white} />
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
@@ -214,6 +250,49 @@ export default Cards = ({ route }) => {
           );
         })}
       </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={addCardsModal}
+        onRequestClose={() => setAddCardsModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Add New Card</Text>
+              <Text style={styles.modalSubTitle}>Prompt</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Enter Prompt"
+                placeholderTextColor={Colors.textDark}
+                defaultValue={newCardPrompt || "New Subject"}
+                onChangeText={(text) => setNewCardPrompt(text)}
+                value={newCardPrompt}
+              />
+              <Text style={styles.modalSubTitle}>Answer</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Enter Answer"
+                placeholderTextColor={Colors.textDark}
+                defaultValue={newCardAnswer || "#000000"}
+                onChangeText={(text) => setNewCardAnswer(text)}
+                value={newCardAnswer}
+              />
+              <View style={styles.modalButtonContainer}>
+                <View style={styles.modalButton}>
+                  <Button
+                    title="Cancel"
+                    onPress={() => setAddCardsModal(false)}
+                  />
+                </View>
+                <View style={styles.modalButton}>
+                  <Button title="Add" onPress={handleAddCard} />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
       <TouchableOpacity style={{ marginHorizontal: "auto" }}>
         <Text style={styles.centerText}>Click Here to Skip this card</Text>
       </TouchableOpacity>
@@ -236,6 +315,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginLeft: 10,
   },
+  headerRight: { marginLeft: "50%" },
+  menuButton: { paddingHorizontal: 5 },
   backButton: {
     marginRight: 10,
   },
@@ -257,7 +338,7 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontWeight: "400",
-    fontSize: 24,
+    marginHorizontal: 5,
     textAlign: "center",
   },
   ratingContainer: {
@@ -307,5 +388,54 @@ const styles = StyleSheet.create({
   },
   hidemodaltext: {
     color: Colors.textDark,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalBackground: {
+    backgroundColor: "white",
+    borderWidth: 5,
+    borderRadius: 30,
+    width: "70%",
+    height: "40%",
+    alignItems: "center",
+  },
+  modalContent: {
+    alignContent: "center",
+    justifyContent: "center",
+  },
+  modalTitle: {
+    textAlign: "center",
+    fontWeight: "bold",
+    color: Colors.textDark,
+    fontSize: 20,
+    marginTop: 10,
+    paddingVertical: 15,
+  },
+  modalInput: {
+    marginBottom: 15,
+    marginTop: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    borderRadius: 15,
+    backgroundColor: Colors.grey,
+    color: Colors.textDark,
+  },
+  modalButton: {
+    backgroundColor: Colors.secondary,
+    borderRadius: 15,
+    paddingVertical: 5,
+    width: 100,
+    marginTop: 30,
+    fontSize: 12,
+    marginLeft: 10,
+    marginBottom: 30,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 });

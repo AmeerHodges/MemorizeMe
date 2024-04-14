@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, StyleSheet, TouchableOpacity, Image } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
 import Colors from "../assets/Colors/Colors.js";
@@ -15,17 +22,87 @@ export default Topics = ({ route }) => {
   const navigation = useNavigation();
   const [topics, setTopics] = useState([]);
   const [counter, setCounter] = useState([]);
+  const [progressCounter, setProgressCounter] = useState([]);
 
   const getFlashcardCount = (topicId) => {
     const topicCounter = counter.find((count) => count.topic_id === topicId);
     return topicCounter ? topicCounter.CardCount : 0;
   };
+  const getProgress = (topicId) => {
+    const progressTracker = progressCounter.find(
+      (count) => count.topic_id === topicId
+    );
+    return progressTracker ? progressTracker.Progress : 0;
+  };
 
+  const [newId, setNewId] = useState(0);
+  const handleAddTopic = () => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "INSERT INTO topics(name, subject_id) VALUES (? , ?);",
+        ["New Topic", subject_Id],
+        (_, result) => {
+          tx.executeSql(
+            "SELECT id FROM topics WHERE name = ? AND subject_id = ?;",
+            ["New Topic", subject_Id],
+            (_, result) => {
+              const newId = result.rows._array.pop().id;
+              console.log("New topic ID:", newId);
+              setNewId(newId); // Update newId state
+              setTopics((prevTopics) => [
+                ...prevTopics,
+                {
+                  id: newId,
+                  name: "New Topic",
+                  progress: "0",
+                },
+              ]);
+            },
+            (_, error) => console.log("Error fetching new topic ID:" + error)
+          );
+        },
+        (_, error) => console.log("Error inserting new topic:" + error)
+      );
+    });
+  };
+
+  const handleDeleteTopic = (item) => {
+    // Show confirmation alert
+    Alert.alert(
+      "Confirm Deletion",
+      "Are you sure you want to delete this item?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: () => Delete(item),
+        },
+      ]
+    );
+  };
+  const Delete = (itemId) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "DELETE FROM topics WHERE id = ?",
+        [itemId],
+        (_, result) => {
+          setTopics((prevItems) =>
+            prevItems.filter((item) => item.id !== itemId)
+          );
+          console.log("GONE " + itemId);
+        },
+        (_, error) => console.log(error)
+      );
+    });
+  };
   useEffect(() => {
     db.transaction((tx) => {
       tx.executeSql(
         "CREATE TABLE IF NOT EXISTS topics(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
-          " name VARCHAR(30) NOT NULL, subject_id INTEGER NOT NULL, FOREIGN KEY(subject_id) REFERENCES subject(id), progress INTEGER DEFAULT 0)",
+          " name VARCHAR(30) NOT NULL, subject_id INTEGER NOT NULL, FOREIGN KEY(subject_id) REFERENCES subject(id) ON DELETE CASCADE)",
         [],
         (_, result) => console.log("topics table created"),
         (_, error) => console.log("topics: " + error)
@@ -35,6 +112,15 @@ export default Topics = ({ route }) => {
         [],
         (_, result) => {
           setCounter(result.rows._array);
+          console.log(result.rows._array);
+        },
+        (_, error) => console.log(error)
+      );
+      tx.executeSql(
+        "SELECT topic_id, ROUND(100 * SUM(confidence) / (5 * COUNT(*))) AS Progress FROM Cards GROUP BY topic_id",
+        [],
+        (_, result) => {
+          setProgressCounter(result.rows._array);
           console.log(result.rows._array);
         },
         (_, error) => console.log(error)
@@ -83,7 +169,11 @@ export default Topics = ({ route }) => {
           return (
             <TouchableOpacity
               key={item.id}
-              onPress={() => navigation.navigate("Cards", { item: item })}
+              onPress={() => [
+                console.log({ item: item }),
+                navigation.navigate("Cards", { item: item }),
+              ]}
+              onLongPress={() => handleDeleteTopic({ item: item })}
             >
               <View
                 style={[
@@ -98,10 +188,21 @@ export default Topics = ({ route }) => {
                   <View>
                     <View style={styles.topicLeftWrapper}>
                       <Text style={styles.topicMainText}>{item.name}</Text>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteTopic(item.id)}
+                        style={{
+                          width: 30,
+                          height: 20,
+                          marginHorizontal: 10,
+                          paddingTop: 3,
+                        }}
+                      >
+                        <Feather name="trash-2" size={12} />
+                      </TouchableOpacity>
                     </View>
                     <View style={styles.topicSubTextWrapper}>
                       <Text style={styles.topicSubText}>
-                        Progress: {item.progress}%
+                        Progress: {getProgress(item.id)}%
                       </Text>
                       <Text style={styles.topicSubText}>
                         Flashcards:
@@ -122,6 +223,13 @@ export default Topics = ({ route }) => {
             </TouchableOpacity>
           );
         })}
+      </View>
+      <View style={styles.addTopicContainer}>
+        <TouchableOpacity onPress={() => handleAddTopic()}>
+          <View style={styles.addTopicWrapper}>
+            <Text style={styles.addSubjectText}>+</Text>
+          </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -226,5 +334,19 @@ const styles = StyleSheet.create({
     width: 84,
     aspectRatio: 1,
     marginRight: 30,
+  },
+  addTopicWrapper: {
+    borderColor: Colors.grey,
+    borderRadius: "60%",
+    borderWidth: 1,
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addTopicContainer: {
+    paddingHorizontal: "45%",
+    marginTop: 20,
+    paddingBottom: 20,
   },
 });

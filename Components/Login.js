@@ -28,7 +28,7 @@ export default Login = ({ navigation }) => {
         /**"SELECT * FROM users;",*/
         [],
         (_, result) => console.log(result.rows._array),
-        (_, error) => console.log(error)
+        (_, error) => handelLoginError()
       );
     });
   }, []);
@@ -44,7 +44,7 @@ export default Login = ({ navigation }) => {
           if (rows.length > 0) {
             const id = rows.item(0).id;
             AsyncStorage.setItem("userId", String(id));
-            navigation.navigate("Home");
+            navigation.navigate("TabScreens");
           } else {
             alert("invalid Details");
           }
@@ -53,6 +53,7 @@ export default Login = ({ navigation }) => {
       );
     });
   }
+  const handelLoginError = () => {};
   return (
     <View style={styles.contianer}>
       <SafeAreaView>

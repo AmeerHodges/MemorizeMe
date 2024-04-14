@@ -16,6 +16,16 @@ import Topics from "./Components/Topics";
 //Dont touch this constant, its how im working on navigation
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+const handleLogout = async () => {
+  try {
+    await AsyncStorage.clear();
+    setLoginStatus(false);
+    console.log("logout worked");
+    navigation.navigate("Welcome");
+  } catch (e) {
+    console.log(e);
+  }
+};
 const TabScreens = () => {
   return (
     <Tab.Navigator
@@ -46,11 +56,9 @@ const TabScreens = () => {
         component={Home}
         options={{ headerShown: false }}
       />
-      <Tab.Screen
-        name="Settings"
-        component={Settings}
-        options={{ headerShown: false }}
-      />
+      <Tab.Screen name="Settings" options={{ headerShown: false }}>
+        {() => <Settings handleLogout={handleLogout} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 };

@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
 import Colors from "../assets/Colors/Colors.js";
 import { openDatabase } from "expo-sqlite";
-import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default Settings = () => {
-  const handleLogout = () => {
-    console.log("handle logout");
+export default Settings = ({ navigation, handleLogout }) => {
+  const handelLogoutPress = () => {
+    handleLogout;
   };
   const handleDeleteAccount = () => {
     console.log("handle Account Delete");
@@ -18,30 +24,53 @@ export default Settings = () => {
   };
   const options = [
     {
+      name: "profile",
+      onPress: console.log("hello, this doesnt exist"),
+    },
+    {
       name: "logout",
-      onPress: handleLogout(),
+      onPress: handelLogoutPress,
     },
     {
       name: "Delete Account",
-      onPress: handleDeleteAccount(),
+      onPress: handleDeleteAccount,
     },
     {
       name: "Delete Subjects",
-      onPress: handleDeleteSubject(),
+      onPress: handleDeleteSubject,
     },
   ];
   return (
-    <SafeAreaView>
-      <Text> Settings</Text>
-      {options.map((item) => {
-        return (
-          <View>
-            <TouchableOpacity onPress={item.onPress}>
-              <Text> {item.name} </Text>
-            </TouchableOpacity>
-          </View>
-        );
-      })}
-    </SafeAreaView>
+    <View style={styles.container}>
+      <SafeAreaView>
+        <Text> Settings</Text>
+      </SafeAreaView>
+      <ScrollView>
+        {options.map((item) => {
+          return (
+            <View style={styles.container} key={item.name}>
+              <View>
+                <TouchableOpacity
+                  style={styles.optionItem}
+                  onPress={() => item.onPress()}
+                >
+                  <Text> {item.name} </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 };
+const styles = StyleSheet.create({
+  container: {
+    flex: 0,
+  },
+  optionItem: {
+    flexDirection: "column",
+    paddingVertical: 10,
+    marginVertical: 10,
+  },
+});

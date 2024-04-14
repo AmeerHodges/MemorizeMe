@@ -1,29 +1,58 @@
 import React, { useState, useEffect } from "react";
 import {
   Text,
+  TextInput,
   View,
   StyleSheet,
   Image,
   FlatList,
   TouchableOpacity,
   ScrollView,
+  Alert,
+  Modal,
+  Button,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather"; //public open source icons
 import { MaterialCommunityIcons } from "@expo/vector-icons"; //open source icons
 import colors from "../assets/Colors/Colors.js";
-
-import infoData from "../assets/data/infoData";
-import Topics from "../Components/Topics.js";
+import useStreakTracker from "./StreakTracker.js";
 import * as SQlite from "expo-sqlite";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import styles from "../assets/Styles/homeStyles.js";
 
 const db = SQlite.openDatabase("MemorizeMe.db");
 
 export default Home = ({ navigation }) => {
   const [displaySubject, setDisplaySubject] = useState([]);
   const [user_id, setuser_id] = useState();
+  const streak = useStreakTracker();
+  const [progressCounter, setProgressCounter] = useState([]);
 
+  const infoData = [
+    {
+      id: 1,
+      iconName: "fire",
+      iconSize: 20,
+      title: "Streak",
+      Data: streak,
+      selected: true,
+    },
+    {
+      id: 2,
+      iconName: "animation-outline",
+      iconSize: 20,
+      title: "Cards Studied",
+      Data: 2145,
+    },
+    {
+      id: 3,
+      iconName: "percent-outline",
+      iconSize: 20,
+      title: "Learned",
+      Data: 0,
+    },
+  ];
   // initialise database
   useEffect(() => {
     const intialiseDataBase = async () => {
@@ -42,7 +71,7 @@ export default Home = ({ navigation }) => {
         //create table if not exists
         tx.executeSql(
           "CREATE TABLE IF NOT EXISTS subject (id INTEGER PRIMARY KEY AUTOINCREMENT," +
-            " title TEXT NOT NULL, progress INTEGER NOT NULL, color TEXT, image TEXT , User_id INTEGER NOT NULL , FOREIGN KEY(User_id) REFERENCES users(id));",
+            " title TEXT NOT NULL, progress INTEGER NOT NULL, color TEXT, image TEXT ,cardsStudied INT DEFAULT 0, User_id INTEGER NOT NULL , FOREIGN KEY(User_id) REFERENCES users(id));",
           [],
           (_, result) => console.log("table subject succesfully created"),
           (_, error) => console.log(error)
@@ -73,11 +102,26 @@ export default Home = ({ navigation }) => {
           },
           (_, error) => console.log(error)
         );
+        tx.executeSql(
+          "SELECT subject_id, topic_id, ROUND(100 * SUM(confidence) / (5 * COUNT(*))) AS Progress FROM Cards JOIN topics ON topics.id = topic_id GROUP BY subject_id",
+          [],
+          (_, result) => {
+            setProgressCounter(result.rows._array),
+              console.log(result.rows._array);
+          },
+          (_, error) => console.log(error)
+        );
       });
     };
     intialiseDataBase();
   }, []);
 
+  const getProgress = (SubjectId) => {
+    const progressTracker = progressCounter.find(
+      (count) => count.subject_id === SubjectId
+    );
+    return progressTracker ? progressTracker.Progress : 0;
+  };
   // item pointer function to get data for each item in the info list
   const renderInfoItem = ({ item }) => {
     return (
@@ -102,37 +146,86 @@ export default Home = ({ navigation }) => {
       </View>
     );
   };
-
-  //adds a predefined subject to databse and updates app
+  const isValidHex = (Hex) => {
+    const regex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    return regex.test(Hex);
+  };
+  //adds a subject to databse and updates app
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newSubjectTitle, setNewSubjectTitle] = useState("");
+  const [selectedColor, setSelectedColor] = useState("");
   const handleAddSubject = () => {
     db.transaction((tx) => {
       tx.executeSql(
         "INSERT INTO subject(title, progress, color, image, User_id) VALUES (?, ?, ? ,?, ?);",
         [
-          "New Subject",
+          newSubjectTitle === "" ? "New Subject" : newSubjectTitle,
           "0",
-          "#000",
+          selectedColor === "" && isValidHex(selectedColor)
+            ? "#000000"
+            : selectedColor,
           Image.resolveAssetSource(
             require("../assets/images/placeholder_subject.png")
           ).uri,
           user_id,
         ],
-        (_, result) => console.log("seccessfull new Subject"),
+        (_, result) => {
+          console.log("Successfully added new subject");
+          // Refresh subjects after adding
+          refreshSubjects();
+        },
         (_, error) => console.log(error)
       );
     });
-    setDisplaySubject((displaySubject) => [
-      ...displaySubject,
-      {
-        id: displaySubject.length + 1,
-        title: "New Subject",
-        progress: "0",
-        color: "Colors.black",
-        image: Image.resolveAssetSource(
-          require("../assets/images/placeholder_subject.png")
-        ).uri,
-      },
-    ]);
+    // Close the modal
+    setModalVisible(false);
+  };
+
+  // Function to refresh subjects
+  const refreshSubjects = () => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "SELECT * from subject where User_id = ?",
+        [user_id],
+        (_, result) => {
+          console.log(result.rows._array);
+          setDisplaySubject(result.rows._array);
+        },
+        (_, error) => console.log(error)
+      );
+    });
+  };
+  const handleDeleteSubject = (item) => {
+    // Show confirmation alert
+    Alert.alert(
+      "Confirm Deletion",
+      "Are you sure you want to delete this item?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: () => Delete(item),
+        },
+      ]
+    );
+  };
+  const Delete = (itemId) => {
+    db.transaction((tx) => {
+      tx.executeSql(
+        "DELETE FROM subject WHERE id = ?",
+        [itemId],
+        (_, result) => {
+          setDisplaySubject((prevItems) =>
+            prevItems.filter((item) => item.id !== itemId)
+          );
+          console.log("GONE " + itemId);
+        },
+        (_, error) => console.log(error)
+      );
+    });
   };
 
   return (
@@ -185,10 +278,21 @@ export default Home = ({ navigation }) => {
                   <View>
                     <View style={styles.subjectLeftWrapper}>
                       <Text style={styles.subjectMainText}>{item.title}</Text>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteSubject(item.id)}
+                        style={{
+                          width: 30,
+                          height: 20,
+                          marginHorizontal: 10,
+                          paddingTop: 3,
+                        }}
+                      >
+                        <Feather name="trash-2" size={12} />
+                      </TouchableOpacity>
                     </View>
                     <View style={styles.subjectSubTextWrapper}>
                       <Text style={styles.subjectSubText}>
-                        Progress: {item.progress}%
+                        Progress: {getProgress(item.id)}%
                       </Text>
                     </View>
                   </View>
@@ -210,145 +314,58 @@ export default Home = ({ navigation }) => {
           );
         })}
         <View style={styles.addSubjectContainer}>
-          <TouchableOpacity onPress={() => handleAddSubject()}>
+          {/* Button to open the modal */}
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
             <View style={styles.addSubjectWrapper}>
               <Text style={styles.addSubjectText}>+</Text>
             </View>
           </TouchableOpacity>
         </View>
       </View>
+      {/* Modal for adding new subject */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Add New Subject</Text>
+              <Text style={styles.modalSubTitle}>Title</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Subject Title"
+                placeholderTextColor={colors.textDark}
+                defaultValue={newSubjectTitle || "New Subject"}
+                onChangeText={(text) => setNewSubjectTitle(text)}
+                value={newSubjectTitle}
+              />
+              <Text style={styles.modalSubTitle}>Color</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Color (Hexcode)"
+                placeholderTextColor={colors.textDark}
+                defaultValue={selectedColor || "#000000"}
+                onChangeText={(text) => setSelectedColor(text)}
+                value={selectedColor}
+              />
+              <View style={styles.modalButtonContainer}>
+                <View style={styles.modalButton}>
+                  <Button
+                    title="Cancel"
+                    onPress={() => setModalVisible(false)}
+                  />
+                </View>
+                <View style={styles.modalButton}>
+                  <Button title="Add" onPress={handleAddSubject} />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-
-  headerWrapper: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    alignItems: "center",
-  },
-
-  profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 40,
-    marginTop: 20,
-    marginLeft: 15,
-  },
-
-  titlesWrapper: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-  },
-
-  titlesHeader1: {
-    fontSize: 32,
-    color: colors.textDark,
-    fontWeight: "900",
-  },
-
-  infoWrapper: {
-    paddingTop: 20,
-  },
-  categoryListWrapper: {
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 30,
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-  },
-
-  categoryItemMainText: {
-    textAlign: "center",
-    fontSize: 30,
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    fontWeight: "bold",
-  },
-
-  categoryItemSubText: {
-    flexDirection: "row",
-    textAlign: "center",
-    fontSize: 15,
-    paddingTop: 20,
-    paddingBottom: 30,
-  },
-  subjectWrapper: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-  },
-  subjectTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-  },
-  subjectCardWrapper: {
-    backgroundColor: "white",
-    borderRadius: 25,
-    justifyContent: "space-between",
-    paddingTop: 20,
-    paddingLeft: 20,
-    flexDirection: "row",
-    shadowColor: colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    borderWidth: 1,
-  },
-  subjectLeftWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  subjectMainText: {
-    marginLeft: 10,
-    fontSize: 16,
-  },
-  subjectSubTextWrapper: {
-    marginTop: 5,
-    marginBottom: 20,
-    paddingLeft: 10,
-  },
-  subjectSubText: {
-    fontSize: 14,
-    color: colors.grey,
-  },
-  subjectCardRight: {
-    alignContent: "center",
-    flexDirection: "row",
-    paddingBottom: -5,
-    marginTop: -10,
-  },
-  subjectImage: {
-    width: 64,
-    height: 64,
-    marginRight: 30,
-  },
-  subjectArrow: {
-    alignSelf: "center",
-    paddingRight: 15,
-  },
-  addSubjectWrapper: {
-    borderColor: colors.grey,
-    borderRadius: "60%",
-    borderWidth: 1,
-    width: 50,
-    height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  addSubjectContainer: {
-    paddingHorizontal: "45%",
-    marginTop: 100,
-    paddingBottom: 20,
-  },
-});
