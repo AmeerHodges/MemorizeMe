@@ -40,13 +40,6 @@ export default Home = ({ navigation }) => {
     },
     {
       id: 2,
-      iconName: "animation-outline",
-      iconSize: 20,
-      title: "Cards Studied",
-      Data: 2145,
-    },
-    {
-      id: 3,
       iconName: "percent-outline",
       iconSize: 20,
       title: "Learned",
