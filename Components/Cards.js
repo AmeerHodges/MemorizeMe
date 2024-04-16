@@ -44,17 +44,6 @@ export default Cards = ({ route }) => {
         (_, result) => console.log("table Cards successfully created"),
         (_, error) => console.log(error)
       );
-      /**tx.executeSql(
-        "insert into Cards(prompt, answer, topic_id) Values ('Salle de classe', 'Classroom', 2)",
-        (_, result) => console.log("inserted banana"),
-        (_, error) => console.log(error)
-      );*/
-      /**tx.executeSql(
-        "DELETE FROM Cards WHERE id = ?",
-        [],
-        (_, result) => console.log("removed banana"),
-        (_, error) => console.log(error)
-      );*/
       tx.executeSql(
         "SELECT * FROM Cards WHERE topic_id = ?",
         [topic_id],
@@ -134,6 +123,10 @@ export default Cards = ({ route }) => {
         (_, result) => {
           console.log(
             `Successfully updated confidence to ${value} for card with id ${currentCard.id}`
+          );
+          tx.executeSql(
+            "UPDATE subject SET cardsStudied = cardsStudied + 1 WHERE id = ?",
+            []
           );
           displayNextCard();
         },
@@ -340,6 +333,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
     marginHorizontal: 5,
     textAlign: "center",
+    fontSize: 24,
   },
   ratingContainer: {
     flexDirection: "row",

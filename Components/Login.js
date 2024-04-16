@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Image,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
 import Colors from "../assets/Colors/Colors.js";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,7 +19,8 @@ import * as SQLite from "expo-sqlite";
 //open databse
 const db = SQLite.openDatabase("MemorizeMe.db");
 
-export default Login = ({ navigation }) => {
+export default Login = ({ navigation, route }) => {
+  const { handleLoginApp } = route.params;
   /** intialise database*/
   useEffect(() => {
     db.transaction((tx) => {
@@ -28,7 +30,7 @@ export default Login = ({ navigation }) => {
         /**"SELECT * FROM users;",*/
         [],
         (_, result) => console.log(result.rows._array),
-        (_, error) => handelLoginError()
+        (_, error) => console.log(error)
       );
     });
   }, []);
@@ -36,24 +38,36 @@ export default Login = ({ navigation }) => {
   const [password, setPassword] = useState("");
 
   function handelLogin() {
-    db.transaction((tx) => {
-      tx.executeSql(
-        "SELECT * FROM users WHERE username = ? AND password = ?",
-        [username, password],
-        (_, { rows }) => {
-          if (rows.length > 0) {
-            const id = rows.item(0).id;
-            AsyncStorage.setItem("userId", String(id));
-            navigation.navigate("TabScreens");
-          } else {
-            alert("invalid Details");
-          }
-        },
-        (_, error) => console.log(error)
-      );
-    });
+    if (username === "" || password === "") {
+      alert("please fill in both username and passowrd");
+    } else {
+      db.transaction((tx) => {
+        tx.executeSql(
+          "SELECT * FROM users WHERE username = ? AND password = ?",
+          [username, password],
+          (_, { rows }) => {
+            if (rows.length > 0) {
+              const id = rows.item(0).id;
+              AsyncStorage.setItem("userId", String(id))
+                .then(() => {
+                  handleLoginApp();
+                })
+                .catch((error) => {
+                  console.error("Error setting userId", error);
+                });
+            } else {
+              alert("Please check Username and Password Or Create An Account");
+            }
+          },
+          (_, e) => handelLoginError(e)
+        );
+      });
+    }
   }
-  const handelLoginError = () => {};
+  const handelLoginError = (e) => {
+    console.log(e);
+    alert("Login failed");
+  };
   return (
     <View style={styles.contianer}>
       <SafeAreaView>

@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   Image,
   Alert,
+  Modal,
+  Button,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
@@ -15,7 +18,7 @@ import { useNavigation } from "@react-navigation/native";
 
 const db = openDatabase("MemorizeMe.db");
 
-export default Topics = ({ route }) => {
+export default Topics = ({ route, setIsLoggedIn }) => {
   const { item } = route.params;
   const subjectColor = item.color;
   const subject_Id = item.id;
@@ -23,6 +26,8 @@ export default Topics = ({ route }) => {
   const [topics, setTopics] = useState([]);
   const [counter, setCounter] = useState([]);
   const [progressCounter, setProgressCounter] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newTopicTitle, setNewTopicTitle] = useState("");
 
   const getFlashcardCount = (topicId) => {
     const topicCounter = counter.find((count) => count.topic_id === topicId);
@@ -40,11 +45,11 @@ export default Topics = ({ route }) => {
     db.transaction((tx) => {
       tx.executeSql(
         "INSERT INTO topics(name, subject_id) VALUES (? , ?);",
-        ["New Topic", subject_Id],
+        [newTopicTitle, subject_Id],
         (_, result) => {
           tx.executeSql(
             "SELECT id FROM topics WHERE name = ? AND subject_id = ?;",
-            ["New Topic", subject_Id],
+            [newTopicTitle, subject_Id],
             (_, result) => {
               const newId = result.rows._array.pop().id;
               console.log("New topic ID:", newId);
@@ -53,7 +58,7 @@ export default Topics = ({ route }) => {
                 ...prevTopics,
                 {
                   id: newId,
-                  name: "New Topic",
+                  name: newTopicTitle,
                   progress: "0",
                 },
               ]);
@@ -223,14 +228,50 @@ export default Topics = ({ route }) => {
             </TouchableOpacity>
           );
         })}
+        <View style={styles.addSubjectContainer}>
+          {/* Button to open the modal */}
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <View style={styles.addSubjectWrapper}>
+              <Text style={styles.addSubjectText}>+</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.addTopicContainer}>
-        <TouchableOpacity onPress={() => handleAddTopic()}>
-          <View style={styles.addTopicWrapper}>
-            <Text style={styles.addSubjectText}>+</Text>
+      {/* Modal for adding new subject */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Add New Subject</Text>
+              <Text style={styles.modalSubTitle}>Title</Text>
+              <TextInput
+                style={styles.modalInput}
+                placeholder="Subject Title"
+                placeholderTextColor={Colors.textDark}
+                defaultValue={newTopicTitle || "New Subject"}
+                onChangeText={(text) => setNewTopicTitle(text)}
+                value={newTopicTitle}
+              />
+              <View style={styles.modalButtonContainer}>
+                <View style={styles.modalButton}>
+                  <Button
+                    title="Cancel"
+                    onPress={() => setModalVisible(false)}
+                  />
+                </View>
+                <View style={styles.modalButton}>
+                  <Button title="Add" onPress={handleAddTopic} />
+                </View>
+              </View>
+            </View>
           </View>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -241,14 +282,17 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 215,
-    shadowOffset: 5,
-    shadowOpacity: 0.25,
+    ShadowOffset: 5,
+    ShadowOpacity: 0.25,
   },
   headerTitle: {
     paddingTop: 40,
     fontSize: 32,
     fontWeight: "400",
     color: Colors.textDark,
+    textShadowColor: "rgba(0,0,0,0.25)",
+    textShadowOffset: { width: 2, height: 4 },
+    textShadowRadius: 5,
   },
   headerWrapper: {
     flexDirection: "row",
@@ -345,6 +389,69 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addTopicContainer: {
+    paddingHorizontal: "45%",
+    marginTop: 20,
+    paddingBottom: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalBackground: {
+    backgroundColor: "white",
+    borderWidth: 5,
+    borderRadius: 30,
+    width: "70%",
+    height: "40%",
+    alignItems: "center",
+  },
+  modalContent: {
+    alignContent: "center",
+    justifyContent: "center",
+  },
+  modalTitle: {
+    textAlign: "center",
+    fontWeight: "bold",
+    color: Colors.textDark,
+    fontSize: 20,
+    marginTop: 10,
+    paddingVertical: 15,
+  },
+  modalInput: {
+    marginBottom: 15,
+    marginTop: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    borderRadius: 15,
+    backgroundColor: Colors.grey,
+    color: Colors.textDark,
+  },
+  modalButton: {
+    backgroundColor: Colors.secondary,
+    borderRadius: 15,
+    paddingVertical: 5,
+    width: 100,
+    marginTop: 30,
+    fontSize: 12,
+    marginLeft: 10,
+    marginBottom: 30,
+  },
+  modalButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  addSubjectWrapper: {
+    borderColor: Colors.grey,
+    borderRadius: "60%",
+    borderWidth: 1,
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  addSubjectContainer: {
     paddingHorizontal: "45%",
     marginTop: 20,
     paddingBottom: 20,

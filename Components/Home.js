@@ -28,7 +28,15 @@ export default Home = ({ navigation }) => {
   const [user_id, setuser_id] = useState();
   const streak = useStreakTracker();
   const [progressCounter, setProgressCounter] = useState([]);
-
+  const average = () => {
+    let total = 0;
+    progressCounter.forEach((counter) => {
+      total += counter.Progress;
+    });
+    return total / progressCounter.length == NaN
+      ? 0
+      : total / progressCounter.length;
+  };
   const infoData = [
     {
       id: 1,
@@ -43,7 +51,7 @@ export default Home = ({ navigation }) => {
       iconName: "percent-outline",
       iconSize: 20,
       title: "Learned",
-      Data: 0,
+      Data: average(),
     },
   ];
   // initialise database

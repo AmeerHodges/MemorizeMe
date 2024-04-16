@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Feather from "react-native-vector-icons/Feather";
@@ -12,33 +13,80 @@ import Colors from "../assets/Colors/Colors.js";
 import { openDatabase } from "expo-sqlite";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default Settings = ({ navigation, handleLogout }) => {
-  const handelLogoutPress = () => {
-    handleLogout;
+const db = openDatabase("MemorizeMe.db");
+export default Settings = ({ navigation, route }) => {
+  const { handleLogoutApp } = route.params;
+  const handleLogout = async () => {
+    console.log("Logging out...");
+    try {
+      // Clear AsyncStorage
+      await AsyncStorage.clear();
+      handleLogoutApp();
+    } catch (error) {
+      console.log("Error logging out:", error);
+    }
   };
   const handleDeleteAccount = () => {
-    console.log("handle Account Delete");
+    Alert.alert(
+      "Are you sure?",
+      "This cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+        },
+        { text: "I'm sure", onPress: () => deleteUserAccount() },
+      ],
+      { cancelable: false }
+    );
   };
-  const handleDeleteSubject = () => {
-    console.log("handle Subject Delete");
+  const deleteUserAccount = () => {
+    db.transaction((tx) => {
+      tx.executeSql("DELETE FROM users WHERE id = ?"),
+        [AsyncStorage.getItem("userId")],
+        (_, result) => {
+          alert("Account Deleted"), handleLogout();
+        },
+        (_, error) => console.error("error deleting account: ", error);
+    });
   };
+  /**const handleDeleteSubject = () => {
+    Alert.alert(
+      "Are you sure?",
+      "This cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Cancel Pressed"),
+        },
+        { text: "I'm sure", onPress: () => deleteSubjects() },
+      ],
+      { cancelable: false }
+    );
+  };
+  const deleteSubjects = () => {
+    db.transaction((tx) => {
+      tx.executeSql("DELETE FROM subject WHERE User_id = ?"),
+        [AsyncStorage.getItem("userId")],
+        (_, result) => {
+          alert("Account Deleted"), handleLogout();
+        },
+        (_, error) => console.error("error deleting account: ", error);
+    });
+  };*/
   const options = [
     {
-      name: "profile",
-      onPress: console.log("hello, this doesnt exist"),
-    },
-    {
       name: "logout",
-      onPress: handelLogoutPress,
+      doFunc: handleLogout,
     },
     {
       name: "Delete Account",
-      onPress: handleDeleteAccount,
+      doFunc: handleDeleteAccount,
     },
-    {
+    /**{
       name: "Delete Subjects",
-      onPress: handleDeleteSubject,
-    },
+      doFunc: handleDeleteSubject,
+    },*/
   ];
   return (
     <View style={styles.container}>
@@ -52,7 +100,7 @@ export default Settings = ({ navigation, handleLogout }) => {
               <View>
                 <TouchableOpacity
                   style={styles.optionItem}
-                  onPress={() => item.onPress()}
+                  onPress={() => item.doFunc()}
                 >
                   <Text> {item.name} </Text>
                 </TouchableOpacity>

@@ -17,7 +17,8 @@ import * as SQLite from "expo-sqlite";
 //open database
 const db = SQLite.openDatabase("MemorizeMe.db");
 
-export default Signup = ({ navigation }) => {
+export default Signup = ({ navigation, route }) => {
+  const { handleLoginApp } = route.params;
   /**intialise Database*/
   useEffect(() => {
     db.transaction((tx) => {
@@ -39,8 +40,20 @@ export default Signup = ({ navigation }) => {
       tx.executeSql(
         "INSERT INTO users(username, password) VALUES(?, ?)",
         [username, password],
-        (_, result) => console.log("successfully created new user"),
-        (_, error) => console.log(error)
+        (_, result) => handleLoginApp(),
+        (_, error) => {
+          if (error.message.includes("UNIQUE constraint failed")) {
+            alert(
+              "Username already exists. Please choose a different username."
+            );
+          } else if (error.message.includes("NOT NULL constraint failed")) {
+            alert("Please fill in all details ");
+          } else {
+            // Handle other errors
+            console.error("Error creating user:", error);
+            alert("An error occurred while creating the user.");
+          }
+        }
       );
     });
   }
